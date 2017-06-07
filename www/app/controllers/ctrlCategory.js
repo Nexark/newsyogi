@@ -3,6 +3,7 @@ yogiApp.controller('ctrlCategory', ["$scope", "$location", "$rootScope", "yogiSe
        /* var serviceTimer;*/
         var viewportwidth;
         var viewportheight;
+
         $scope.moduleName = 'category';
         $scope.noData = true;
         $rootScope.isTextOnly = yogiService.getViewMode();
@@ -16,7 +17,13 @@ yogiApp.controller('ctrlCategory', ["$scope", "$location", "$rootScope", "yogiSe
         }
 
         $scope.init = function() {
+
+            $rootScope.menu.activate();
+            $rootScope.menu.deactivate();
+
             $scope.noData = true;
+            //$("#custom-navbar").css('display','block');
+            $('.refresh-button').css('display', 'none');
             yogiService.setSelectedCategoryData(false);
             var hideSpinnerInterval = $interval(function(){
                 hideSpinner();
@@ -34,12 +41,7 @@ yogiApp.controller('ctrlCategory', ["$scope", "$location", "$rootScope", "yogiSe
             }
             hideSpinner();
 
-/*            if (Date.now() < yogiService.getTimeExpired($routeParams.catName)){
-                $scope.renderLocalData();
-            } else {
-                $scope.getcategoryData();
-            }*/
-            $scope.categoryTitle = yogiService.getSelectedCategoryTitle()
+            $scope.categoryTitle = yogiService.getSelectedCategoryTitle();
             $scope.getViewportData();
             $scope.itemIndex = yogiService.getCategoryIndex();
             if($scope.itemIndex) { 
@@ -104,6 +106,7 @@ yogiApp.controller('ctrlCategory', ["$scope", "$location", "$rootScope", "yogiSe
 
             $scope.lastUpdatedTime = moment(result.lastupdated).tz('Asia/Kolkata').format('DD MMMM gggg hh:mm A z');
             $scope.categoryData = result.feed;
+            console.log(result.feed.length);
             $scope.categoryTitle = result.displayName;
             $scope.categoryColor = result.colorCode;
             $interval.cancel($rootScope.serviceTimer);
@@ -132,6 +135,8 @@ yogiApp.controller('ctrlCategory', ["$scope", "$location", "$rootScope", "yogiSe
 
         $scope.selectNews = function(data, index) {
 
+            //$rootScope.menu.deactivate();
+
             $interval.cancel($rootScope.serviceTimer);
             yogiService.setCategoryIndex(index);
             yogiService.setCurrentData(data);
@@ -143,26 +148,6 @@ yogiApp.controller('ctrlCategory', ["$scope", "$location", "$rootScope", "yogiSe
             $rootScope.isTextOnly = mode;
             yogiService.setViewMode($rootScope.isTextOnly);
         }
-
-/*        $scope.viewMore = function() {
-            //
-            $scope.initialCategorylimit += 16;
-           // $scope.checkViewOptions();
-            $scope.isTextOnly = yogiService.getViewMode();
-            if($scope.categoryData.length <= $scope.initialCategorylimit ){
-               $('#btnViewMore').hide(); 
-            }
-            $timeout(function() {
-                if ($scope.isTextOnly) {
-                    $(".news-title").show();
-                    $(".news_images").hide();
-                }else{
-                    $(".news-title").hide();
-                    $(".news_images").show();
-                }
-            }, 200);
-           // $(".news_images").hide();
-        };*/
 
         $scope.backBtn = function(){
             console.log('backBtn!!!!');

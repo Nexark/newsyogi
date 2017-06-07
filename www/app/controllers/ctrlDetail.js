@@ -1,7 +1,10 @@
 yogiApp.controller('ctrlDetail', ["$scope", "$location", "$rootScope", "yogiService", "config", '$interval', '$routeParams', 'ngProgress', '$timeout','$route','$sce', 'feed',
-    function($scope, $location, $rootScope, yogiService, config, $interval, $routeParams, ngProgress, $timeout, $route, $sce, feed) {
+    function($scope, $location, $rootScope, yogiService, config, $interval, $routeParams, ngProgress, $timeout, $route, $sce, feed, $cordovaInAppBrowser) {
         var viewportwidth;
         var viewportheight;
+        console.log('length='+localStorage.getItem('length'));
+        var length = parseInt(localStorage.getItem('length'));
+        $scope.viewHome = false;
         $scope.moduleName = 'detail';
         $scope.shareToggle = false;
         $scope.viewMode = "minimize";
@@ -54,15 +57,25 @@ yogiApp.controller('ctrlDetail', ["$scope", "$location", "$rootScope", "yogiServ
             var id = $scope.detailsData.id;
             var localdata = yogiService.getDataCategory(yogiService.getSelectedCategory());
             var currentIndex = yogiService.getIndexNews(id);
+
             var newIndex;
             if (nav == 'next' && yogiService.checkExistNews(id).next){
+
                 newIndex = currentIndex + 1;
-                $scope.selectNews(localdata.feed[newIndex], newIndex);
+
+            } else if(nav == 'next' && !yogiService.checkExistNews(id).next) {
+
+                newIndex = 0;
 
             } else  if(nav == 'prev' && yogiService.checkExistNews(id).prev){
+
                 newIndex = currentIndex - 1;
-                $scope.selectNews(localdata.feed[newIndex], newIndex);
+
+            } else if(nav == 'prev' && !yogiService.checkExistNews(id).prev){
+
+                newIndex = length - 1;
             }
+            $scope.selectNews(localdata.feed[newIndex], newIndex);
         };
         $scope.share = function (event, message, link, image) {
 
@@ -73,7 +86,12 @@ yogiApp.controller('ctrlDetail', ["$scope", "$location", "$rootScope", "yogiServ
             }
         };
         $scope.init = function() {
+            $rootScope.menu.activate();
+            $rootScope.menu.deactivate();
+
             console.log('feed', feed);
+
+            //$("#custom-navbar").css('display','none');
             yogiService.setCurrentModule($scope.moduleName);
             ngProgress.start();
             $scope.detailsData = feed;//yogiService.getCurrentData();
@@ -81,6 +99,7 @@ yogiApp.controller('ctrlDetail', ["$scope", "$location", "$rootScope", "yogiServ
             if ($scope.detailsData.length == 0) {
                 $rootScope.$broadcast("resetRoute");
             }
+            //console.log(feed.length);
             $scope.getViewportData();
             console.log('yogiService.setCurrentData(data);', yogiService.getCurrentData())
             console.error('$scope.detailsData.id', $scope.detailsData.id);
@@ -159,14 +178,10 @@ yogiApp.controller('ctrlDetail', ["$scope", "$location", "$rootScope", "yogiServ
             $scope.newsDate = moment(result.date).tz('Asia/Kolkata').format('DD MMMM gggg hh:mm A z');
             $scope.imageLink = (result.image) ? result.image.sort : null;
             $scope.videoLink = (result.image) ? $sce.trustAsResourceUrl(result.image.videoLink) : null;
-            //$scope.videoLink = $sce.trustAsResourceUrl('https://www.youtube.com/embed/Ys3mXt3WqMA');
             $scope.slides = (result.image) ? result.image.slide : null;
             $scope.newsContent = result.content;
             $scope.source = result.source;
             $scope.sourceLink = result.link;
-            /*$timeout(function() {
-                $scope.checkViewOptions()
-            }, 500);*/
         };
         $scope.gotoCategory = function() {
             if(typeof spinnerplugin !== 'undefined'){
@@ -177,7 +192,29 @@ yogiApp.controller('ctrlDetail', ["$scope", "$location", "$rootScope", "yogiServ
             }, 0);
             //$rootScope.$broadcast("changeroute", $scope.category);
         };
+
+        var speakSelect = function(value){
+
+            TTS
+                .speak({
+                    text: value,
+                    locale: 'en-GB',
+                    rate: 1.5
+                }, function () {
+                    console.log('success');
+                }, function (reason) {
+                    console.log(reason);
+                });
+        };
+
+        $scope.selectSpeaker = function(){
+
+            speakSelect($scope.newsContent);
+
+        };
+
         var timeShowShare;
+
         $scope.showShare = function (show, event) {
             event.stopPropagation();
             $scope.shareToggle = show;
@@ -206,6 +243,7 @@ yogiApp.controller('ctrlDetail', ["$scope", "$location", "$rootScope", "yogiServ
         }
 
         $scope.actionSwipeRight = function(event) {
+            speakSelect("");
             if(event && event.hasOwnProperty('target') && !!$(event.target).closest('.slick-slider').length){
                 event.preventDefault();
                 return;
@@ -224,6 +262,7 @@ yogiApp.controller('ctrlDetail', ["$scope", "$location", "$rootScope", "yogiServ
                 return;
             }
             if ($scope.viewMode === 'full') {
+                speakSelect("");
                 var url = ($scope.videoLink) ? $scope.videoLink : $scope.sourceLink;
                 if(url){
                     var ref = cordova.InAppBrowser.open(url, '_blank');                    
@@ -234,17 +273,24 @@ yogiApp.controller('ctrlDetail', ["$scope", "$location", "$rootScope", "yogiServ
         }
 
         $scope.actionSwipeUp = function(){
+
+            console.log("up");
+
             if ($scope.viewMode === 'minimize') {
                 $scope.changeNews('next');
-            }
+            };
+            speakSelect("");
         }
 
         $scope.actionSwipeDown = function(){
+
+            console.log("down");
+
             if ($scope.viewMode === 'minimize') {
                 $scope.changeNews('prev');
-            }
-        }
-
+            };
+            speakSelect("");
+        };
 
         $scope.testShare = function(message, img, link){
             window.plugins.socialsharing.shareViaWhatsApp(message + '\n\n' + link, null, link, function() {

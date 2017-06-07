@@ -6,11 +6,35 @@ yogiApp.directive("dirHeader", ["$location", "$rootScope", "$interval", "$templa
             scope: {},
             templateUrl: "app/views/viewHeader.html",
             controller: function($scope, $location, $rootScope, yogiService, config) {
+
+                $rootScope.menu;
+
+                $scope.toggleTextMode = function(mode){
+                    if(mode){
+                        $("#show_images_home").css({color: '#000', 'background-color': 'rgb(220, 219, 221)', 'border-color': '#ddd'});
+                        $("#hide_images_home").css({color: '#fff', 'background-color': '#286090', 'border-color': '#204d74'});
+                    } else {
+                        $("#show_images_home").css({color: '#fff', 'background-color': '#286090', 'border-color': '#204d74'});
+                        $("#hide_images_home").css({color: '#000', 'background-color': 'rgb(220, 219, 221)', 'border-color': '#ddd'});
+                        
+                    }
+                    $rootScope.isTextOnly = mode;
+                    yogiService.setViewMode($rootScope.isTextOnly);
+                }
+
                 $scope.init = function() {
+
+
+                    $("#show_images_home").css({color: '#fff', 'background-color': '#286090', 'border-color': '#204d74'});
+                    $("#hide_images_home").css({color: '#000', 'background-color': 'rgb(220, 219, 221)', 'border-color': '#ddd'});
+                    $rootScope.menu = $('.left-menu').sliiide({place: 'left', exit_selector: '.left-exit', toggle: '#nav-icon2'});
+
                     $scope.headerData = [];
                     $scope.moreCategories = [];
                     $scope.getHeaderData();
                 };
+
+
 
                 $scope.getHeaderData = function() {
                     var url = config.RESTURLS.HOST.BASE + config.RESTURLS.SUBURL['MENU'];
@@ -37,6 +61,9 @@ yogiApp.directive("dirHeader", ["$location", "$rootScope", "$interval", "$templa
                 };
 
                 $scope.selectCategory = function(data) {
+
+                    //$rootScope.menu.deactivate();
+
                     if(typeof window.spinnerplugin !== 'undefined'){
                         window.spinnerplugin.show();
                     }
@@ -49,10 +76,16 @@ yogiApp.directive("dirHeader", ["$location", "$rootScope", "$interval", "$templa
                     //$rootScope.$broadcast("changeroute", data.catCode.toLowerCase());
                     //$(".navbar-toggle").trigger('click');
                 };
+                $scope.goHome = function() {
+                    $rootScope.menu.activate();
+                    $rootScope.menu.deactivate();
+                    $location.url('/home');
+                };
+
                 $scope.refresh = function(){
                     $scope.init();
                     $rootScope.$broadcast("refresh");
-                }
+                };
 
                 $scope.actionSwipeRight = function(event){
                     $rootScope.$broadcast("actionSwipeRight", {event: event});
